@@ -329,15 +329,18 @@ function setupBarcodeScanner() {
                     }
                 } else if (isPosView || isInventoryView) {
                     const product = products.find(p => p.barcode === finalBarcode);
+                    console.log('Scanned barcode:', finalBarcode, 'Found product:', product);
                     if (product) {
                         if (isPosView) {
                             addToBill(product);
+                            showToast(`Added: ${product.name}`, 'success');
                             if (activeEl.id === 'pos-barcode-input') activeEl.value = '';
                         } else {
                             editProduct(product.id);
                             if (activeEl.id === 'inventory-barcode-input') activeEl.value = '';
                         }
                     } else {
+                        showToast(`Product not found: ${finalBarcode}`, 'error');
                         openAddProductModal(finalBarcode);
                         if (activeEl.id === 'pos-barcode-input' || activeEl.id === 'inventory-barcode-input') activeEl.value = '';
                     }
@@ -626,23 +629,14 @@ function setupNavigation() {
 }
 
 function generateBarcode() {
-    // Generate EAN-13 compatible numeric barcode
-    // Format: 2 (internal use) + YYMMDD + 5 random digits + checksum
+    // Generate short 8-digit numeric barcode (EAN-8 compatible)
+    // Format: 2 + YYMMDD + 2 random digits (no checksum for simplicity)
     const now = new Date();
-    const dateStr = now.getFullYear().toString().slice(2) + 
-                   String(now.getMonth() + 1).padStart(2, '0') + 
-                   String(now.getDate()).padStart(2, '0');
-    const random = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
-    const base = '2' + dateStr + random; // 12 digits
-    
-    // Calculate EAN-13 checksum
-    let sum = 0;
-    for (let i = 0; i < 12; i++) {
-        sum += parseInt(base[i]) * (i % 2 === 0 ? 1 : 3);
-    }
-    const checksum = (10 - (sum % 10)) % 10;
-    
-    return base + checksum; // 13 digits total
+    const yy = now.getFullYear().toString().slice(2);
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+    return `2${yy}${mm}${dd}${random}`; // 8 digits total
 }
 
 function openAddProductModal(barcode = '') {
@@ -820,6 +814,9 @@ function setupModals() {
             });
             hideModal();
             loadInventory();
+            // Also reload products for POS to get updated barcodes
+            const res = await fetchAuth(`${API_BASE}/products?lite=true`);
+            products = await res.json();
         } catch (err) {
             console.error(err);
             alert('Error saving product');
