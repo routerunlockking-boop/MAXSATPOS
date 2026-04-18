@@ -1411,19 +1411,15 @@ function updateBillUI() {
 function calculateChange() {
     const amountToPay = parseFloat(document.getElementById('pos-amount-to-pay').value) || 0;
     const amountPaid = parseFloat(document.getElementById('pos-amount-paid').value) || 0;
-    const change = amountPaid - amountToPay;
     const balance = amountToPay - amountPaid;
     
-    const changeEl = document.getElementById('pos-change-amount');
-    changeEl.textContent = formatCurrency(Math.max(0, change));
-    
-    const balanceEl = document.getElementById('pos-balance-amount');
+    const balanceEl = document.getElementById('pos-change-amount');
     balanceEl.textContent = formatCurrency(Math.max(0, balance));
     
-    if (change < 0 && amountPaid > 0) {
-        changeEl.style.color = '#ef4444'; // Red for insufficient payment
+    if (balance > 0 && amountPaid > 0) {
+        balanceEl.style.color = '#ef4444'; // Red for remaining balance
     } else {
-        changeEl.style.color = 'var(--text-main)';
+        balanceEl.style.color = 'var(--text-main)';
     }
 }
 
