@@ -2512,13 +2512,13 @@ function updateBarcodePreview(products) {
     
     preview.innerHTML = '';
     
-    // Calculate optimal grid layout based on label size and A4 paper
+    // Calculate optimal grid layout based on label size and A4 paper (portrait orientation)
     // A4 width: 210mm, with 10mm margins = 190mm usable width
     const usableWidth = 190; // mm
     const labelWidths = {
-        small: 30,
-        medium: 50,
-        large: 80
+        small: 20,
+        medium: 30,
+        large: 50
     };
     const labelWidth = labelWidths[labelSize];
     const gap = 5; // mm gap between labels
@@ -2530,9 +2530,9 @@ function updateBarcodePreview(products) {
     // Calculate max rows per page (A4 height: 297mm, with 10mm margins = 277mm usable)
     // Add extra safety margin to prevent cutting off
     const labelHeights = {
-        small: 20,
-        medium: 30,
-        large: 50
+        small: 30,
+        medium: 50,
+        large: 80
     };
     const labelHeight = labelHeights[labelSize];
     const usableHeight = 270; // mm (reduced from 277 for safety margin)
@@ -2575,7 +2575,7 @@ function updateBarcodePreview(products) {
             label.className = `barcode-label ${labelSize}`;
             label.innerHTML = `
                 <div class="product-name">${product.name}</div>
-                <svg class="barcode-svg" style="height: ${labelSize === 'small' ? '25px' : labelSize === 'medium' ? '35px' : '50px'}; width: 100%;"></svg>
+                <svg class="barcode-svg" style="height: ${labelSize === 'small' ? '35px' : labelSize === 'medium' ? '50px' : '70px'}; width: 100%; transform: rotate(90deg);"></svg>
                 <div style="font-family: monospace; font-size: ${labelSize === 'small' ? '7px' : labelSize === 'medium' ? '9px' : '11px'};">${product.barcode}</div>
                 <div class="product-price">${formatCurrency(product.price)}</div>
             `;
