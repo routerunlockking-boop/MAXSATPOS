@@ -465,15 +465,40 @@ function startScanner() {
     
     if (html5QrCode.getState() === 2) return; // already scanning
 
+    // Mobile-friendly configuration
+    const config = {
+        fps: 10,
+        qrbox: { width: 250, height: 250 },
+        aspectRatio: 1.0,
+        // Mobile specific settings
+        videoConstraints: {
+            facingMode: "environment",
+            width: { min: 640, ideal: 1280 },
+            height: { min: 480, ideal: 720 }
+        }
+    };
+
     html5QrCode.start(
         { facingMode: "environment" }, 
-        { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 },
+        config,
         (decodedText, decodedResult) => {
+            console.log('Barcode scanned:', decodedText);
+            
+            // Vibrate on mobile if supported
+            if (navigator.vibrate) {
+                navigator.vibrate(200);
+            }
+            
             // Success handler
             if (currentScanMode === 'addProduct') {
                 document.getElementById('reader').style.boxShadow = "inset 0 0 0 10px #10b981";
                 setTimeout(() => { document.getElementById('reader').style.boxShadow = "none"; }, 500);
                 document.getElementById('product-barcode').value = decodedText;
+                document.getElementById('product-barcode-text').textContent = decodedText;
+                const previewSvg = document.getElementById('product-barcode-preview');
+                if (previewSvg) {
+                    renderBarcodeToSVG(previewSvg, decodedText);
+                }
                 hideModal();
                 return;
             }
@@ -499,6 +524,7 @@ function startScanner() {
                 setTimeout(() => { document.getElementById('reader').style.boxShadow = "none"; }, 500);
                 
                 addToBill(product);
+                showToast(`Added: ${product.name}`, 'success');
                 
                 // Close the modal after successful scan
                 hideModal();
@@ -512,11 +538,27 @@ function startScanner() {
             }
         },
         (errorMessage) => {
-            // Ignore parse errors as it scans frames without barcodes
+            // Only log errors, don't spam console
+            if (errorMessage && !errorMessage.includes('No MultiFormat Readers')) {
+                console.log('Scanner error:', errorMessage);
+            }
         }
     ).catch(err => {
         console.error("Camera access failed", err);
-        alert("Unable to access camera. Please ensure permissions are granted.");
+        
+        // More helpful error messages for mobile
+        let errorMessage = "Unable to access camera. ";
+        if (err.name === 'NotAllowedError') {
+            errorMessage += "Please grant camera permissions in your browser settings.";
+        } else if (err.name === 'NotFoundError') {
+            errorMessage += "No camera found on this device.";
+        } else if (err.name === 'NotSupportedError') {
+            errorMessage += "Camera not supported by this browser.";
+        } else {
+            errorMessage += "Please ensure camera permissions are granted and try again.";
+        }
+        
+        alert(errorMessage);
     });
 }
 
