@@ -2445,8 +2445,8 @@ function createBarcodeCard(product) {
 function renderBarcodeToSVG(svgElement, value) {
     if (!svgElement || !value) return;
     
-    // Proper Code 128 barcode encoding
-    const code128Patterns = {
+    // Code 128C encoding for numbers only (more compact)
+    const code128CPatterns = {
         0: '11011001100', 1: '11001101100', 2: '11001100110', 3: '10010011000',
         4: '10010001100', 5: '10001001100', 6: '10011001000', 7: '10011000100',
         8: '10001100100', 9: '11001001000', 10: '11001000100', 11: '11000100100',
@@ -2476,55 +2476,58 @@ function renderBarcodeToSVG(svgElement, value) {
         104: '11011010000', 105: '11011010000', 106: '11011011000'
     };
     
-    // Character to Code 128 value mapping (Code B - all ASCII 32-127)
-    const getCharCode = (char) => {
-        const code = char.charCodeAt(0);
-        if (code >= 32 && code <= 127) return code - 32;
-        return 0;
-    };
-    
-    // Build the barcode pattern
+    // Use Code 128C for numbers (pairs of digits)
     let pattern = '';
-    let x = 0;
-    const barWidth = 2;
+    const barWidth = 1.5; // Thinner bars for better scanning
     
-    // Start Code B (104)
-    pattern += code128Patterns[104];
+    // Start Code C (105)
+    pattern += code128CPatterns[105];
     
-    // Calculate checksum
-    let checksum = 104;
+    let checksum = 105;
+    let charCount = 0;
     
-    // Data characters
-    for (let i = 0; i < value.length; i++) {
-        const charCode = getCharCode(value[i]);
-        pattern += code128Patterns[charCode];
-        checksum += charCode * (i + 1);
+    // Process digits in pairs for Code 128C
+    for (let i = 0; i < value.length; i += 2) {
+        if (i + 1 < value.length) {
+            // Pair of digits
+            const pair = parseInt(value.substr(i, 2));
+            pattern += code128CPatterns[pair];
+            checksum += pair * (charCount + 1);
+            charCount++;
+        } else {
+            // Single digit at end - switch to Code B
+            pattern += code128CPatterns[100]; // Code B
+            const digit = parseInt(value[i]);
+            pattern += code128CPatterns[digit + 16]; // Digits 0-9 in Code B
+            checksum += (digit + 16) * (charCount + 1);
+            charCount++;
+        }
     }
     
-    // Checksum character
+    // Checksum
     const checkChar = checksum % 103;
-    pattern += code128Patterns[checkChar];
+    pattern += code128CPatterns[checkChar];
     
-    // Stop character (106)
-    pattern += code128Patterns[106];
+    // Stop character
+    pattern += code128CPatterns[106];
     
     // Convert to SVG
     let svgContent = '';
-    let currentX = 10; // Left margin
+    let currentX = 5; // Left margin
     
     for (let i = 0; i < pattern.length; i++) {
         const isBar = pattern[i] === '1';
         if (isBar) {
-            svgContent += `<rect x="${currentX}" y="0" width="${barWidth}" height="45" fill="black"/>`;
+            svgContent += `<rect x="${currentX}" y="0" width="${barWidth}" height="50" fill="black"/>`;
         }
         currentX += barWidth;
     }
     
     // Add text below
-    const totalWidth = currentX + 10;
+    const totalWidth = currentX + 5;
     svgElement.setAttribute('viewBox', `0 0 ${totalWidth} 60`);
     svgElement.innerHTML = svgContent + 
-        `<text x="${totalWidth/2}" y="55" text-anchor="middle" font-family="monospace" font-size="10">${value}</text>`;
+        `<text x="${totalWidth/2}" y="58" text-anchor="middle" font-family="monospace" font-size="12" font-weight="bold">${value}</text>`;
 }
 
 function updatePrintButtonState() {
