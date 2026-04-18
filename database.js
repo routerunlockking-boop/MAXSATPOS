@@ -95,9 +95,9 @@ const initializeDatabase = async () => {
         const adminExists = await User.findOne({ role: 'admin' });
         if (!adminExists) {
             await User.create({
-                email: 'smartzonelk101@gmail.com',
-                password: '200723800385@',
-                business_name: 'SMART ZONE',
+                email: 'maxsat@gmail.com',
+                password: 'maxadmin',
+                business_name: 'MAX SAT TEC',
                 role: 'admin',
                 is_active: true
             });
@@ -106,9 +106,9 @@ const initializeDatabase = async () => {
             await User.updateOne(
                 { _id: adminExists._id },
                 {
-                    email: 'smartzonelk101@gmail.com',
-                    password: '200723800385@',
-                    business_name: 'SMART ZONE',
+                    email: 'maxsat@gmail.com',
+                    password: 'maxadmin',
+                    business_name: 'MAX SAT TEC',
                     role: 'admin',
                     is_active: true
                 }

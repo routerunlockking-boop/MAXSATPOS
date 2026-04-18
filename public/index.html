@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartZone - Retail POS</title>
+    <title>MaxSatTec - Retail POS</title>
     <!-- Google Fonts: Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Boxicons for modern icons -->
@@ -22,7 +22,7 @@
     <div id="auth-overlay" class="auth-overlay active">
         <div class="auth-box">
             <div class="auth-header">
-                <h2>Welcome To SmartZone POS</h2>
+                <h2>Welcome To MaxSat POS</h2>
                 <p id="auth-subtitle">Login to your account OR register a new business</p>
             </div>
 
@@ -113,7 +113,7 @@
         <aside class="sidebar" id="sidebar">
             <div class="logo-container">
                 <i class='bx bx-store-alt icon'></i>
-                <span class="logo-name">SmartZone POS</span>
+                <span class="logo-name">MaxSat POS</span>
             </div>
             <ul class="nav-list">
                 <li>
@@ -716,7 +716,7 @@
                                     style="margin-top:0; color:var(--danger); display:flex; align-items:center; gap:8px;">
                                     <i class='bx bx-error-circle'></i> Danger Zone</h3>
                                 <p style="color:var(--text-muted); font-size:14px; margin-bottom:15px;">If you no longer
-                                    wish to use SmartZone POS, you can request your account and all associated data to
+                                    wish to use MaxSat POS, you can request your account and all associated data to
                                     be permanently deleted. This action will be reviewed by an admin.</p>
                                 <button class="btn btn-danger btn-outline" id="btn-request-disconnect-tab"
                                     style="color: var(--danger); border-color: var(--danger);"><i
@@ -861,7 +861,7 @@
                 <div class="modal-body print-area" id="print-area">
                     <div class="receipt">
                         <div class="receipt-header">
-                            <h2 id="receipt-business-name">SmartZone</h2>
+                            <h2 id="receipt-business-name">MaxSat</h2>
                             <p>Retail Shop POS</p>
                             <p>----------------------------</p>
                         </div>
@@ -1064,10 +1064,6 @@
     <!-- Print Styles for Barcodes -->
     <style>
         @media print {
-            @page {
-                margin: 10mm;
-                size: A4 portrait;
-            }
             body * {
                 visibility: hidden;
             }
@@ -1079,34 +1075,58 @@
                 left: 0;
                 top: 0;
                 width: 100%;
-                height: 100%;
                 background: white;
                 padding: 0;
                 margin: 0;
                 display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: flex-start;
-            }
-            .barcode-grid {
-                display: grid;
-                gap: 5mm;
+                flex-wrap: wrap;
                 justify-content: center;
-                align-content: start;
-                width: 100%;
-                max-width: 190mm;
-                margin: 0;
+                align-items: flex-start;
+                gap: 10px;
             }
             .barcode-label {
                 page-break-inside: avoid;
                 break-inside: avoid;
-                margin: 0;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                border: 1px solid #000;
+                padding: 10px;
+                box-sizing: border-box;
             }
-            .barcode-page-break {
-                page-break-before: always;
-                break-before: page;
-                width: 100%;
-                height: 0;
+            .barcode-label.small {
+                width: 120px;
+                height: 80px;
+            }
+            .barcode-label.medium {
+                width: 180px;
+                height: 110px;
+            }
+            .barcode-label.large {
+                width: 280px;
+                height: 180px;
+            }
+            .barcode-label .product-name {
+                font-size: 12px;
+                font-weight: 600;
+                margin-bottom: 5px;
+                word-wrap: break-word;
+                max-width: 100%;
+            }
+            .barcode-label .barcode-svg {
+                flex: 1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 5px 0;
+            }
+            .barcode-label .product-price {
+                font-size: 14px;
+                font-weight: 700;
+                color: #000;
+                margin-top: 5px;
             }
         }
 
@@ -1196,11 +1216,6 @@
             color: var(--primary);
             font-weight: 700;
             margin-top: 2px;
-        }
-        .barcode-grid {
-            display: grid;
-            gap: 10px;
-            justify-content: center;
         }
     </style>
 
