@@ -671,8 +671,8 @@ function setupNavigation() {
 }
 
 function generateBarcode() {
-    // Generate 4-digit numeric barcode (1000-9999 range)
-    return Math.floor(1000 + Math.random() * 9000).toString();
+    // Generate simple 1-999 barcode for easiest scanning
+    return Math.floor(1 + Math.random() * 999).toString();
 }
 
 function openAddProductModal(barcode = '') {
