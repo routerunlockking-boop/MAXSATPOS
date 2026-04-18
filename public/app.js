@@ -285,23 +285,25 @@ function setupBarcodeScanner() {
         const isBarcodeField = activeEl.id === 'pos-barcode-input' || activeEl.id === 'product-barcode' || activeEl.id === 'inventory-barcode-input';
         const isOtherInput = (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA') && !isBarcodeField;
 
+        // Scanner detection: fast consecutive keypresses (interval < 100ms)
+        const isScannerInput = interval < 100;
+
         // Collect characters
-        if (e.key.length === 1) {
-            // If it's a fast sequence, it's a scanner. 
+        if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
             barcodeBuffer += e.key;
             
-            // If it's fast and we are in an input that isn't the barcode field, prevent it
-            if (interval < 50 && isOtherInput) {
+            // If it's from scanner and we're in another input, prevent it
+            if (isScannerInput && isOtherInput) {
                 e.preventDefault();
             }
 
             clearTimeout(barcodeTimer);
             barcodeTimer = setTimeout(() => {
                 barcodeBuffer = '';
-            }, 500); // Increased slightly for slower hardware
+            }, 150); // Increased buffer time for slower scanners
         } 
         
-        if (e.key === 'Enter' || e.key === 'Tab') {
+        if (e.key === 'Enter') {
             // Priority: buffer (from scanner) > input value (if manually typed)
             let finalBarcode = barcodeBuffer.trim();
             if (!finalBarcode && isBarcodeField) {
@@ -312,7 +314,6 @@ function setupBarcodeScanner() {
                 e.preventDefault();
                 
                 // We clear buffer immediately to prevent double-processing 
-                // but keep the value in finalBarcode
                 barcodeBuffer = '';
                 clearTimeout(barcodeTimer);
 
@@ -670,6 +671,25 @@ function setupModals() {
     document.getElementById('btn-close-invoice-modal').addEventListener('click', hideModal);
     document.getElementById('btn-close-admin-modal').addEventListener('click', hideModal);
     
+    // Scanner modal close button
+    const closeScannerBtn = document.getElementById('btn-close-scanner-modal');
+    if (closeScannerBtn) {
+        closeScannerBtn.addEventListener('click', () => {
+            stopScanner();
+            hideModal();
+        });
+    }
+    
+    // Close modal when clicking on overlay background
+    if (modalOverlay) {
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) {
+                stopScanner();
+                hideModal();
+            }
+        });
+    }
+    
     // Check if close buttons exist
     const closeCustomerBtn = document.getElementById('btn-close-customer-modal');
     const closeVoucherBtn = document.getElementById('btn-close-voucher-modal');
@@ -876,15 +896,15 @@ function hideModal() {
     modalOverlay.classList.remove('active');
     document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
     
-    // Stop the custom barcode camera stream
+    // Stop the barcode scanner camera
+    stopScanner();
+}
+
+function stopScanner() {
     if (html5QrCode && html5QrCode.getState() === 2) {
         html5QrCode.stop().then(() => {
-            isScanTorchOn = false;
-            try {
-                document.querySelector('#btn-toggle-torch i').classList.replace('bxs-bolt-circle', 'bx-bolt-circle');
-                document.querySelector('#btn-toggle-torch i').style.color = '';
-            } catch(e){}
-        }).catch(err => console.error(err));
+            console.log('Scanner stopped');
+        }).catch(err => console.error('Error stopping scanner:', err));
     }
 }
 
