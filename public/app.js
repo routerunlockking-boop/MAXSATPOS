@@ -1412,9 +1412,13 @@ function calculateChange() {
     const amountToPay = parseFloat(document.getElementById('pos-amount-to-pay').value) || 0;
     const amountPaid = parseFloat(document.getElementById('pos-amount-paid').value) || 0;
     const change = amountPaid - amountToPay;
+    const balance = amountToPay - amountPaid;
     
     const changeEl = document.getElementById('pos-change-amount');
     changeEl.textContent = formatCurrency(Math.max(0, change));
+    
+    const balanceEl = document.getElementById('pos-balance-amount');
+    balanceEl.textContent = formatCurrency(Math.max(0, balance));
     
     if (change < 0 && amountPaid > 0) {
         changeEl.style.color = '#ef4444'; // Red for insufficient payment
@@ -1447,6 +1451,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 applyVoucher();
             }
         });
+    }
+    
+    // Amount Paid Input - calculate balance in real-time
+    const amountPaidInput = document.getElementById('pos-amount-paid');
+    if (amountPaidInput) {
+        amountPaidInput.addEventListener('input', calculateChange);
     }
 });
 

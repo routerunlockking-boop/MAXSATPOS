@@ -463,9 +463,16 @@
                                         <span>CHANGE</span>
                                         <span id="pos-change-amount">0.00</span>
                                     </div>
-                                    <div class="summary-row total">
-                                        <span>TOTAL</span>
-                                        <span id="pos-total-amount">0.00</span>
+                                    <!-- Balance and Total Box -->
+                                    <div style="background: #f0fdf4; padding: 12px; border-radius: 8px; border: 1px solid #10b981; margin-bottom: 12px;">
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: var(--text-muted);">
+                                            <span>Balance</span>
+                                            <span id="pos-balance-amount" style="color: #ef4444; font-weight: 700;">0.00</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; font-size: 15px; font-weight: 700; color: var(--text-main);">
+                                            <span>TOTAL</span>
+                                            <span id="pos-total-amount">0.00</span>
+                                        </div>
                                     </div>
                                     <button class="btn btn-success btn-block btn-lg" id="btn-submit-bill"
                                         style="background: #10b981; border: none; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); font-weight: 700; padding: 16px;">
