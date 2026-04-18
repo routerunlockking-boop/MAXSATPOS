@@ -2575,7 +2575,7 @@ function updateBarcodePreview(products) {
             label.className = `barcode-label ${labelSize}`;
             label.innerHTML = `
                 <div class="product-name">${product.name}</div>
-                <svg class="barcode-svg" style="height: ${labelSize === 'small' ? '35px' : labelSize === 'medium' ? '50px' : '70px'}; width: 100%; transform: rotate(90deg);"></svg>
+                <svg class="barcode-svg" style="height: ${labelSize === 'small' ? '25px' : labelSize === 'medium' ? '35px' : '50px'}; width: 100%;"></svg>
                 <div style="font-family: monospace; font-size: ${labelSize === 'small' ? '7px' : labelSize === 'medium' ? '9px' : '11px'};">${product.barcode}</div>
                 <div class="product-price">${formatCurrency(product.price)}</div>
             `;
