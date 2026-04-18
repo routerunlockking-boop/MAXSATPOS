@@ -1206,6 +1206,8 @@ document.getElementById('btn-export-inventory').addEventListener('click', () => 
 async function loadPOS() {
     currentBill = [];
     updateBillUI();
+    document.getElementById('pos-amount-paid').value = '';
+    calculateChange();
     document.getElementById('pos-search-input').value = '';
     
     try {
@@ -1414,12 +1416,14 @@ function calculateChange() {
     const balance = amountToPay - amountPaid;
     
     const balanceEl = document.getElementById('pos-change-amount');
-    balanceEl.textContent = formatCurrency(Math.max(0, balance));
-    
-    if (balance > 0 && amountPaid > 0) {
-        balanceEl.style.color = '#ef4444'; // Red for remaining balance
-    } else {
-        balanceEl.style.color = 'var(--text-main)';
+    if (balanceEl) {
+        balanceEl.textContent = formatCurrency(Math.max(0, balance));
+        
+        if (balance > 0 && amountPaid > 0) {
+            balanceEl.style.color = '#ef4444'; // Red for remaining balance
+        } else {
+            balanceEl.style.color = 'var(--text-main)';
+        }
     }
 }
 
@@ -1453,6 +1457,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const amountPaidInput = document.getElementById('pos-amount-paid');
     if (amountPaidInput) {
         amountPaidInput.addEventListener('input', calculateChange);
+        amountPaidInput.addEventListener('keyup', calculateChange);
+        amountPaidInput.addEventListener('change', calculateChange);
     }
 });
 
