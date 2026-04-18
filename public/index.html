@@ -1078,10 +1078,55 @@
                 background: white;
                 padding: 0;
                 margin: 0;
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                align-items: flex-start;
+                gap: 10px;
             }
             .barcode-label {
                 page-break-inside: avoid;
                 break-inside: avoid;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                border: 1px solid #000;
+                padding: 10px;
+                box-sizing: border-box;
+            }
+            .barcode-label.small {
+                width: 120px;
+                height: 80px;
+            }
+            .barcode-label.medium {
+                width: 180px;
+                height: 110px;
+            }
+            .barcode-label.large {
+                width: 280px;
+                height: 180px;
+            }
+            .barcode-label .product-name {
+                font-size: 12px;
+                font-weight: 600;
+                margin-bottom: 5px;
+                word-wrap: break-word;
+                max-width: 100%;
+            }
+            .barcode-label .barcode-svg {
+                flex: 1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 5px 0;
+            }
+            .barcode-label .product-price {
+                font-size: 14px;
+                font-weight: 700;
+                color: #000;
+                margin-top: 5px;
             }
         }
 
