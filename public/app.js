@@ -629,14 +629,9 @@ function setupNavigation() {
 }
 
 function generateBarcode() {
-    // Generate short 8-digit numeric barcode (EAN-8 compatible)
-    // Format: 2 + YYMMDD + 2 random digits (no checksum for simplicity)
-    const now = new Date();
-    const yy = now.getFullYear().toString().slice(2);
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
-    const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
-    return `2${yy}${mm}${dd}${random}`; // 8 digits total
+    // Generate short 6-digit numeric barcode
+    // Format: 1XXXXX where X is random (100000-999999 range)
+    return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
 function openAddProductModal(barcode = '') {
@@ -650,6 +645,26 @@ function openAddProductModal(barcode = '') {
     // Set barcode after reset - auto-generate if not provided
     const finalBarcode = barcode || generateBarcode();
     document.getElementById('product-barcode').value = finalBarcode;
+    document.getElementById('product-barcode-text').textContent = finalBarcode;
+    
+    // Render barcode preview
+    setTimeout(() => {
+        const previewSvg = document.getElementById('product-barcode-preview');
+        if (previewSvg) {
+            renderBarcodeToSVG(previewSvg, finalBarcode);
+        }
+    }, 100);
+    
+    // Update preview when barcode is manually changed
+    const barcodeInput = document.getElementById('product-barcode');
+    barcodeInput.addEventListener('input', (e) => {
+        const value = e.target.value;
+        document.getElementById('product-barcode-text').textContent = value;
+        const previewSvg = document.getElementById('product-barcode-preview');
+        if (previewSvg) {
+            renderBarcodeToSVG(previewSvg, value);
+        }
+    });
 
     showModal(productModal);
     
