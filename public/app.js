@@ -626,11 +626,23 @@ function setupNavigation() {
 }
 
 function generateBarcode() {
-    // Generate a unique barcode: PREFIX + timestamp + random
-    const prefix = 'MAX';
-    const timestamp = Date.now().toString(36).toUpperCase();
-    const random = Math.random().toString(36).substring(2, 5).toUpperCase();
-    return `${prefix}${timestamp}${random}`;
+    // Generate EAN-13 compatible numeric barcode
+    // Format: 2 (internal use) + YYMMDD + 5 random digits + checksum
+    const now = new Date();
+    const dateStr = now.getFullYear().toString().slice(2) + 
+                   String(now.getMonth() + 1).padStart(2, '0') + 
+                   String(now.getDate()).padStart(2, '0');
+    const random = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
+    const base = '2' + dateStr + random; // 12 digits
+    
+    // Calculate EAN-13 checksum
+    let sum = 0;
+    for (let i = 0; i < 12; i++) {
+        sum += parseInt(base[i]) * (i % 2 === 0 ? 1 : 3);
+    }
+    const checksum = (10 - (sum % 10)) % 10;
+    
+    return base + checksum; // 13 digits total
 }
 
 function openAddProductModal(barcode = '') {
@@ -2380,29 +2392,86 @@ function createBarcodeCard(product) {
 function renderBarcodeToSVG(svgElement, value) {
     if (!svgElement || !value) return;
     
-    // Simple barcode rendering using Code 128-like pattern
-    const encoder = new TextEncoder();
-    const data = encoder.encode(value);
+    // Proper Code 128 barcode encoding
+    const code128Patterns = {
+        0: '11011001100', 1: '11001101100', 2: '11001100110', 3: '10010011000',
+        4: '10010001100', 5: '10001001100', 6: '10011001000', 7: '10011000100',
+        8: '10001100100', 9: '11001001000', 10: '11001000100', 11: '11000100100',
+        12: '10110011100', 13: '10011011100', 14: '10011001110', 15: '10111001100',
+        16: '10011101100', 17: '10011100110', 18: '11001110010', 19: '11001011100',
+        20: '11001001110', 21: '11011100100', 22: '11001110100', 23: '11101101110',
+        24: '11101001100', 25: '11100101100', 26: '11100100110', 27: '11101100100',
+        28: '11100110100', 29: '11100110010', 30: '11011011100', 31: '11011001110',
+        32: '11001110110', 33: '11101101110', 34: '11010111100', 35: '11010011110',
+        36: '11011101000', 37: '11011100010', 38: '11011101110', 39: '11101011000',
+        40: '11101000110', 41: '11100010110', 42: '11101101000', 43: '11101100010',
+        44: '11100011010', 45: '11101111010', 46: '11001000010', 47: '11110001010',
+        48: '10100110000', 49: '10100001100', 50: '10010110000', 51: '10010000110',
+        52: '10000101100', 53: '10000100110', 54: '10110010000', 55: '10110000100',
+        56: '10011010000', 57: '10011000010', 58: '10000110100', 59: '10000110010',
+        60: '11000010010', 61: '11001010000', 62: '11110111010', 63: '11000010100',
+        64: '10001111010', 65: '10100111100', 66: '10010111100', 67: '10010011110',
+        68: '10111100100', 69: '10011110100', 70: '10011110010', 71: '11110100100',
+        72: '11110010100', 73: '11110010010', 74: '11011011110', 75: '11011110110',
+        76: '11110110110', 77: '10101111000', 78: '10100011110', 79: '10001011110',
+        80: '10111101000', 81: '10111100010', 82: '11110101000', 83: '11110100010',
+        84: '10111011110', 85: '10111101110', 86: '11101011110', 87: '11110101110',
+        88: '11010000100', 89: '11010010000', 90: '11010011100', 91: '11000111010',
+        92: '11010111000', 93: '11000011110', 94: '11000111010', 95: '10100011100',
+        96: '10001011100', 97: '10001000110', 98: '10100010000', 99: '10001010000',
+        100: '10111000100', 101: '10011101100', 102: '10111010000', 103: '10111100110',
+        104: '11011010000', 105: '11011010000', 106: '11011011000'
+    };
     
-    // Generate SVG barcode pattern
+    // Character to Code 128 value mapping (Code B - all ASCII 32-127)
+    const getCharCode = (char) => {
+        const code = char.charCodeAt(0);
+        if (code >= 32 && code <= 127) return code - 32;
+        return 0;
+    };
+    
+    // Build the barcode pattern
     let pattern = '';
-    const barWidth = 2;
     let x = 0;
+    const barWidth = 2;
     
-    // Create alternating bars
+    // Start Code B (104)
+    pattern += code128Patterns[104];
+    
+    // Calculate checksum
+    let checksum = 104;
+    
+    // Data characters
     for (let i = 0; i < value.length; i++) {
-        const charCode = value.charCodeAt(i);
-        const isBar = i % 2 === 0;
-        const width = Math.max(2, (charCode % 3 + 1) * barWidth);
-        
-        if (isBar) {
-            pattern += `<rect x="${x}" y="0" width="${width}" height="100%" fill="black"/>`;
-        }
-        x += width + 1;
+        const charCode = getCharCode(value[i]);
+        pattern += code128Patterns[charCode];
+        checksum += charCode * (i + 1);
     }
     
-    svgElement.setAttribute('viewBox', `0 0 ${x} 60`);
-    svgElement.innerHTML = pattern;
+    // Checksum character
+    const checkChar = checksum % 103;
+    pattern += code128Patterns[checkChar];
+    
+    // Stop character (106)
+    pattern += code128Patterns[106];
+    
+    // Convert to SVG
+    let svgContent = '';
+    let currentX = 10; // Left margin
+    
+    for (let i = 0; i < pattern.length; i++) {
+        const isBar = pattern[i] === '1';
+        if (isBar) {
+            svgContent += `<rect x="${currentX}" y="0" width="${barWidth}" height="45" fill="black"/>`;
+        }
+        currentX += barWidth;
+    }
+    
+    // Add text below
+    const totalWidth = currentX + 10;
+    svgElement.setAttribute('viewBox', `0 0 ${totalWidth} 60`);
+    svgElement.innerHTML = svgContent + 
+        `<text x="${totalWidth/2}" y="55" text-anchor="middle" font-family="monospace" font-size="10">${value}</text>`;
 }
 
 function updatePrintButtonState() {
