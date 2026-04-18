@@ -575,6 +575,7 @@ function setupNavigation() {
             if(target === 'admin-view') loadAdminUsers();
             if(target === 'customers-view') loadCustomers();
             if(target === 'vouchers-view') loadVouchers();
+            if(target === 'barcodes-view') loadBarcodesView();
         });
     });
     
@@ -623,6 +624,14 @@ function setupNavigation() {
     }
 }
 
+function generateBarcode() {
+    // Generate a unique barcode: PREFIX + timestamp + random
+    const prefix = 'MAX';
+    const timestamp = Date.now().toString(36).toUpperCase();
+    const random = Math.random().toString(36).substring(2, 5).toUpperCase();
+    return `${prefix}${timestamp}${random}`;
+}
+
 function openAddProductModal(barcode = '') {
     const form = document.getElementById('product-form');
     form.reset();
@@ -630,12 +639,11 @@ function openAddProductModal(barcode = '') {
     currentProductImageBase64 = null;
     document.getElementById('product-image-preview').innerHTML = '<span style="color:var(--text-muted);font-size:12px;">+ Add Image</span>';
     document.getElementById('product-modal-title').textContent = 'Add Product';
-    
-    // Set barcode after reset
-    if (barcode) {
-        document.getElementById('product-barcode').value = barcode;
-    }
-    
+
+    // Set barcode after reset - auto-generate if not provided
+    const finalBarcode = barcode || generateBarcode();
+    document.getElementById('product-barcode').value = finalBarcode;
+
     showModal(productModal);
     
     // Focus and highlight
@@ -814,6 +822,48 @@ function setupModals() {
             alert('Error updating user');
         }
     });
+
+    // Barcode Management Buttons
+    const btnPrintSelectedBarcodes = document.getElementById('btn-print-selected-barcodes');
+    const btnSelectAllBarcodes = document.getElementById('btn-select-all-barcodes');
+    const btnCloseBarcodePrint = document.getElementById('btn-close-barcode-print-modal');
+    const btnCancelBarcodePrint = document.getElementById('btn-cancel-barcode-print');
+    const btnConfirmPrintBarcodes = document.getElementById('btn-confirm-print-barcodes');
+    
+    if (btnPrintSelectedBarcodes) {
+        btnPrintSelectedBarcodes.addEventListener('click', showBarcodePrintModal);
+    }
+    
+    if (btnSelectAllBarcodes) {
+        btnSelectAllBarcodes.addEventListener('click', () => {
+            const allCards = document.querySelectorAll('.barcode-card');
+            const allSelected = selectedBarcodes.size === allCards.length;
+            
+            if (allSelected) {
+                selectedBarcodes.clear();
+                allCards.forEach(card => card.classList.remove('selected'));
+            } else {
+                allCards.forEach(card => {
+                    const id = card.dataset.id;
+                    selectedBarcodes.add(id);
+                    card.classList.add('selected');
+                });
+            }
+            updatePrintButtonState();
+        });
+    }
+    
+    if (btnCloseBarcodePrint) {
+        btnCloseBarcodePrint.addEventListener('click', hideModal);
+    }
+    
+    if (btnCancelBarcodePrint) {
+        btnCancelBarcodePrint.addEventListener('click', hideModal);
+    }
+    
+    if (btnConfirmPrintBarcodes) {
+        btnConfirmPrintBarcodes.addEventListener('click', printBarcodes);
+    }
 }
 
 function showModal(modal) {
@@ -2145,4 +2195,266 @@ function loadVouchers() {
             deleteVoucher(voucherId);
         });
     });
+}
+
+// ==== BARCODES MANAGEMENT ====
+let selectedBarcodes = new Set();
+let allBarcodeProducts = [];
+
+function loadBarcodesView() {
+    const grid = document.getElementById('barcodes-grid');
+    const emptyState = document.getElementById('barcodes-empty');
+    const searchInput = document.getElementById('barcodes-search');
+    const categoryFilter = document.getElementById('barcodes-category-filter');
+    
+    if (!grid) return;
+    
+    // Get all products for barcode management
+    allBarcodeProducts = [...products];
+    
+    renderBarcodeCards();
+    
+    // Setup search and filter
+    if (searchInput) {
+        searchInput.addEventListener('input', debounce(() => {
+            renderBarcodeCards();
+        }, 300));
+    }
+    
+    if (categoryFilter) {
+        categoryFilter.addEventListener('change', () => {
+            renderBarcodeCards();
+        });
+    }
+}
+
+function renderBarcodeCards() {
+    const grid = document.getElementById('barcodes-grid');
+    const emptyState = document.getElementById('barcodes-empty');
+    const searchInput = document.getElementById('barcodes-search');
+    const categoryFilter = document.getElementById('barcodes-category-filter');
+    const printBtn = document.getElementById('btn-print-selected-barcodes');
+    
+    if (!grid) return;
+    
+    const searchTerm = searchInput?.value?.toLowerCase() || '';
+    const filterValue = categoryFilter?.value || '';
+    
+    let filteredProducts = allBarcodeProducts.filter(p => {
+        const matchesSearch = p.name.toLowerCase().includes(searchTerm) || 
+                             (p.barcode && p.barcode.toLowerCase().includes(searchTerm));
+        
+        if (filterValue === 'with-barcode') {
+            return matchesSearch && p.barcode;
+        } else if (filterValue === 'without-barcode') {
+            return matchesSearch && !p.barcode;
+        }
+        return matchesSearch;
+    });
+    
+    grid.innerHTML = '';
+    
+    if (filteredProducts.length === 0) {
+        emptyState.style.display = 'block';
+        grid.style.display = 'none';
+    } else {
+        emptyState.style.display = 'none';
+        grid.style.display = 'grid';
+        
+        filteredProducts.forEach(product => {
+            const card = createBarcodeCard(product);
+            grid.appendChild(card);
+        });
+    }
+    
+    updatePrintButtonState();
+}
+
+function createBarcodeCard(product) {
+    const card = document.createElement('div');
+    card.className = `barcode-card ${selectedBarcodes.has(product.id) ? 'selected' : ''}`;
+    card.dataset.id = product.id;
+    
+    const hasBarcode = !!product.barcode;
+    const barcodeValue = hasBarcode ? product.barcode : generateBarcode();
+    
+    card.innerHTML = `
+        <div class="checkbox">
+            <i class='bx bx-check'></i>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center; margin-bottom: 12px;">
+            <div style="width: 50px; height: 50px; border-radius: 8px; background: var(--secondary); display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                ${product.image ? `<img src="${product.image}" style="width: 100%; height: 100%; object-fit: cover;">` : `<i class='bx bx-box' style="font-size: 24px; color: var(--text-muted);"></i>`}
+            </div>
+            <div style="flex: 1; min-width: 0;">
+                <div style="font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${product.name}</div>
+                <div style="font-size: 12px; color: var(--text-muted);">${formatCurrency(product.price)}</div>
+            </div>
+        </div>
+        ${hasBarcode ? `
+            <svg class="barcode-svg" data-barcode="${barcodeValue}" data-name="${product.name}" data-price="${product.price}"></svg>
+            <div style="text-align: center; font-family: monospace; font-size: 11px; color: var(--text-muted);">${barcodeValue}</div>
+        ` : `
+            <div style="text-align: center; padding: 20px; color: var(--text-muted); font-size: 12px;">
+                <i class='bx bx-plus-circle' style="font-size: 24px; margin-bottom: 8px; display: block;"></i>
+                Click to add barcode
+            </div>
+        `}
+    `;
+    
+    // Toggle selection on click
+    card.addEventListener('click', (e) => {
+        // Don't toggle if clicking the generate button
+        if (e.target.closest('.btn-generate-barcode')) return;
+        
+        if (selectedBarcodes.has(product.id)) {
+            selectedBarcodes.delete(product.id);
+            card.classList.remove('selected');
+        } else {
+            selectedBarcodes.add(product.id);
+            card.classList.add('selected');
+        }
+        updatePrintButtonState();
+    });
+    
+    // Generate barcode button if no barcode
+    if (!hasBarcode) {
+        const generateBtn = document.createElement('button');
+        generateBtn.className = 'btn btn-outline btn-sm btn-generate-barcode';
+        generateBtn.style.cssText = 'width: 100%; margin-top: 10px; font-size: 12px;';
+        generateBtn.innerHTML = `<i class='bx bx-barcode'></i> Generate Barcode`;
+        generateBtn.addEventListener('click', async () => {
+            const newBarcode = generateBarcode();
+            try {
+                await fetchAuth(`${API_BASE}/products/${product.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: product.name,
+                        barcode: newBarcode,
+                        quantity: product.quantity,
+                        cost_price: product.cost_price,
+                        price: product.price,
+                        image: product.image
+                    })
+                });
+                product.barcode = newBarcode;
+                renderBarcodeCards();
+                showToast('Barcode generated successfully');
+            } catch (err) {
+                console.error(err);
+                showToast('Error generating barcode', 'error');
+            }
+        });
+        card.querySelector('.barcode-card > div:last-child').appendChild(generateBtn);
+    } else {
+        // Render barcode SVG
+        setTimeout(() => {
+            renderBarcodeToSVG(card.querySelector('.barcode-svg'), barcodeValue);
+        }, 0);
+    }
+    
+    return card;
+}
+
+function renderBarcodeToSVG(svgElement, value) {
+    if (!svgElement || !value) return;
+    
+    // Simple barcode rendering using Code 128-like pattern
+    const encoder = new TextEncoder();
+    const data = encoder.encode(value);
+    
+    // Generate SVG barcode pattern
+    let pattern = '';
+    const barWidth = 2;
+    let x = 0;
+    
+    // Create alternating bars
+    for (let i = 0; i < value.length; i++) {
+        const charCode = value.charCodeAt(i);
+        const isBar = i % 2 === 0;
+        const width = Math.max(2, (charCode % 3 + 1) * barWidth);
+        
+        if (isBar) {
+            pattern += `<rect x="${x}" y="0" width="${width}" height="100%" fill="black"/>`;
+        }
+        x += width + 1;
+    }
+    
+    svgElement.setAttribute('viewBox', `0 0 ${x} 60`);
+    svgElement.innerHTML = pattern;
+}
+
+function updatePrintButtonState() {
+    const printBtn = document.getElementById('btn-print-selected-barcodes');
+    if (printBtn) {
+        printBtn.disabled = selectedBarcodes.size === 0;
+        printBtn.innerHTML = `<i class='bx bx-printer'></i> Print Selected (${selectedBarcodes.size})`;
+    }
+}
+
+function showBarcodePrintModal() {
+    const modal = document.getElementById('barcode-print-modal');
+    const preview = document.getElementById('barcode-print-preview');
+    
+    // Get selected products
+    const selectedProducts = allBarcodeProducts.filter(p => selectedBarcodes.has(p.id) && p.barcode);
+    
+    updateBarcodePreview(selectedProducts);
+    
+    // Setup label size change handler
+    document.getElementById('barcode-label-size').addEventListener('change', () => {
+        updateBarcodePreview(selectedProducts);
+    });
+    
+    // Setup copies change handler
+    document.getElementById('barcode-copies').addEventListener('change', () => {
+        updateBarcodePreview(selectedProducts);
+    });
+    
+    showModal(modal);
+}
+
+function updateBarcodePreview(products) {
+    const preview = document.getElementById('barcode-print-preview');
+    const labelSize = document.getElementById('barcode-label-size').value;
+    const copies = parseInt(document.getElementById('barcode-copies').value) || 1;
+    
+    preview.innerHTML = '';
+    
+    products.forEach(product => {
+        for (let i = 0; i < copies; i++) {
+            const label = document.createElement('div');
+            label.className = `barcode-label ${labelSize}`;
+            label.innerHTML = `
+                <div class="product-name">${product.name}</div>
+                <svg class="barcode-svg" style="height: ${labelSize === 'small' ? '25px' : labelSize === 'medium' ? '35px' : '50px'}; width: 100%;"></svg>
+                <div style="font-family: monospace; font-size: ${labelSize === 'small' ? '7px' : labelSize === 'medium' ? '9px' : '11px'};">${product.barcode}</div>
+                <div class="product-price">${formatCurrency(product.price)}</div>
+            `;
+            preview.appendChild(label);
+            
+            // Render barcode
+            setTimeout(() => {
+                renderBarcodeToSVG(label.querySelector('.barcode-svg'), product.barcode);
+            }, 0);
+        }
+    });
+}
+
+function printBarcodes() {
+    window.print();
+}
+
+// Debounce helper
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
 }
