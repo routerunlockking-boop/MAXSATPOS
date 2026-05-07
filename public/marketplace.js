@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('store-name').textContent = data.business_name;
         
         allProducts = data.products;
-        storeWhatsappNumber = data.whatsapp_number || '94773568828'; // Fallback if old user
+        storeWhatsappNumber = data.whatsapp_number || '94786800086'; // Fallback if old user
         
         document.getElementById('loading-spinner').style.display = 'none';
         
