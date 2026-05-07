@@ -10,7 +10,7 @@ const connectDB = async () => {
     }
 
     try {
-        const uri = process.env.MONGO_URI || 'mongodb+srv://max:max%4012345@cluster0.llsek1x.mongodb.net/pos_db?retryWrites=true&w=majority';
+        const uri = process.env.MONGO_URI || 'mongodb+srv://ravimotors:10669Abc@cluster0.mqdicae.mongodb.net/testdb?retryWrites=true&w=majority';
         const db = await mongoose.connect(uri, {
             serverSelectionTimeoutMS: 5000
         });
@@ -36,9 +36,9 @@ const UserSchema = new mongoose.Schema({
     is_active: { type: Boolean, default: false },
     delete_request: { type: Boolean, default: false },
     invoice_settings: {
-        header_title: { type: String, default: 'MAX SAT TEC' },
-        header_subtitle: { type: String, default: Galle' },
-        header_contact: { type: String, default: 'Mobile: 077-356-8828' },
+        header_title: { type: String, default: 'SMARTZONE' },
+        header_subtitle: { type: String, default: 'New Town Padaviya, Anuradhapura' },
+        header_contact: { type: String, default: 'Mobile: 078-68000 86' },
         tax_invoice_text: { type: String, default: 'Tax Invoice' },
         label_bill_no: { type: String, default: 'Bill No:' },
         label_cashier: { type: String, default: 'Cashier:' },
@@ -218,9 +218,9 @@ const initializeDatabase = async () => {
         const adminExists = await User.findOne({ role: 'admin' });
         if (!adminExists) {
             await User.create({
-                email: 'maxsat@gmail.com',
-                password: 'maxadmin',
-                business_name: 'MAX SAT TEC',
+                email: 'ochithyaminsilu6@gmail.com',
+                password: '10669Abc',
+                business_name: 'RAVI MOTORS',
                 role: 'admin',
                 is_active: true
             });
@@ -229,9 +229,9 @@ const initializeDatabase = async () => {
             await User.updateOne(
                 { _id: adminExists._id },
                 {
-                    email: 'maxsat@gmail.com',
-                    password: 'maxadmin',
-                    business_name: 'MAX SAT TEC',
+                    email: 'ochithyaminsilu6@gmail.com',
+                    password: '10669Abc',
+                    business_name: 'RAVI MOTORS',
                     role: 'admin',
                     is_active: true
                 }

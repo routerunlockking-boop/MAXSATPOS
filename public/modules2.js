@@ -515,9 +515,9 @@ async function printReceipt(inv) {
     
     // Fetch custom invoice settings
     let invSettings = {
-        header_title: 'MAX SAT TEC',
-        header_subtitle: 'Galle',
-        header_contact: 'Mobile: 077-356-8828',
+        header_title: 'RAVI MOTORS',
+        header_subtitle: 'New Town Padaviya, Anuradhapura',
+        header_contact: 'Mobile: 078-4159546',
         tax_invoice_text: 'Tax Invoice',
         label_bill_no: 'Bill No:',
         label_cashier: 'Cashier:',
@@ -531,7 +531,7 @@ async function printReceipt(inv) {
         label_amount_paid: 'Amount Paid',
         label_balance: 'Balance',
         footer_message1: 'Thank You! Come Again',
-        footer_message2: 'Please keep this receipt for warranty claims.<br>Items with IMEI are subject to warranty conditions.',
+        footer_message2: 'Please keep this receipt for warranty claims.<br>Items with Box are subject to warranty conditions.',
         footer_powered_by: 'Powered by SmartZone'
     };
     let activeTemplate = null;
