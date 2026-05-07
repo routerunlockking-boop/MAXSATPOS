@@ -36,9 +36,9 @@ const UserSchema = new mongoose.Schema({
     is_active: { type: Boolean, default: false },
     delete_request: { type: Boolean, default: false },
     invoice_settings: {
-        header_title: { type: String, default: 'MAX SAT TEC' },
-        header_subtitle: { type: String, default: Galle' },
-        header_contact: { type: String, default: 'Mobile: 077-356-8828' },
+        header_title: { type: String, default: 'SMARTZONE' },
+        header_subtitle: { type: String, default: 'New Town Padaviya, Anuradhapura' },
+        header_contact: { type: String, default: 'Mobile: 078-68000 86' },
         tax_invoice_text: { type: String, default: 'Tax Invoice' },
         label_bill_no: { type: String, default: 'Bill No:' },
         label_cashier: { type: String, default: 'Cashier:' },
