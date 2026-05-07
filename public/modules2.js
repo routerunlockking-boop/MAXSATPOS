@@ -515,9 +515,9 @@ async function printReceipt(inv) {
     
     // Fetch custom invoice settings
     let invSettings = {
-        header_title: 'MAX SAT TEC',
-        header_subtitle: 'Galle',
-        header_contact: 'Mobile: 077-356-8828',
+        header_title: 'SMARTZONE',
+        header_subtitle: 'New Town Padaviya, Anuradhapura',
+        header_contact: 'Mobile: 078-68000 86',
         tax_invoice_text: 'Tax Invoice',
         label_bill_no: 'Bill No:',
         label_cashier: 'Cashier:',
